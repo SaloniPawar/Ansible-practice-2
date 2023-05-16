@@ -1,0 +1,38 @@
+- hosts: ubuntuservers
+  user: ubuntu 
+  become_user: root 
+  become_method: sudo
+  become: yes
+
+  tasks:
+    - name: update apt
+      apt: 
+        name: apt
+        update_cache: yes
+
+    - name: install JAVA
+      apt:
+        name: openjdk-8-jdk
+        state: present
+
+    - name: Check directories
+      stat:
+        path: /root/target
+      register: directory_data
+
+    - debug: var=directory_data.stat.path
+
+    - name: Create directory if it doesn't already exist
+      file:
+        path: /root/target
+        state: directory
+      when: not directory_data.stat.exists
+
+    - name: copy artifact from local to remote
+      copy: 
+        src: /root/spring-petclinic/target/spring-petclinic-2.7.0-SNAPSHOT.jar
+        dest: /root/target
+
+    - name: Run target .jar file 
+      shell: cd /root/target; java -jar spring-petclinic-2.7.0-SNAPSHOT.jar & exit
+    

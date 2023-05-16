@@ -1,0 +1,30 @@
+    - name: update apt
+      apt: 
+        name: apt
+        update_cache: yes
+
+    - name: install JAVA
+      apt:
+        name: "{{package}}"
+        state: present 
+
+    - name: Check directories
+      stat:
+        path: "{{destination_path}}"
+      register: directory_data
+
+    - debug: var=directory_data.stat.path
+
+    - name: Create directory if it doesn't already exist
+      file:
+        path: "{{destination_path}}"
+        state: directory
+      when: not directory_data.stat.exists
+
+    - name: copy artifact from local to remote
+      copy: 
+        src: /root/spring-petclinic/target/spring-petclinic-2.7.0-SNAPSHOT.jar
+        dest: "{{destination_path}}"
+              
+    - name: Run target .jar file 
+      shell: cd /root/target; java -jar spring-petclinic-2.7.0-SNAPSHOT.jar & exit
